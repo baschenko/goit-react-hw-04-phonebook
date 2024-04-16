@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { nanoid } from 'nanoid';
 
 import { Container } from './App.styled';
@@ -7,7 +7,7 @@ import ContactForm from './ContactForm/ContactForm';
 import Filter from './Filter/Filter';
 
 export function App() {
-  
+
   const [contacts, setContacts] = useState([
     { id: 'id-1', name: 'Rosie Simpson', number: '459-12-56' },
     { id: 'id-2', name: 'Hermione Kline', number: '443-89-12' },
@@ -15,21 +15,23 @@ export function App() {
     { id: 'id-4', name: 'Annie Copeland', number: '227-91-26' },
   ]);
   const [filter, setFilter] = useState('');
+  const isFirstRender = useRef(true);
 
-  
-  const contactsLocal = JSON.parse(window.localStorage.getItem('contacts'));
-  
   useEffect(() => {
+    const contactsLocal = JSON.parse(window.localStorage.getItem('contacts'));
+    
     if (contactsLocal) {
       setContacts(contactsLocal);
     }
   }, []);
 
   useEffect(() => {
-    if (contacts !== contactsLocal) {
-      localStorage.setItem('contacts', JSON.stringify(contacts));
+    if (isFirstRender.current) {
+      isFirstRender.current = false;
+      return;
     }
-  }, [contacts, contactsLocal]);
+    localStorage.setItem('contacts', JSON.stringify(contacts));
+  }, [contacts]);
 
   const addContact = ({ name, number }) => {
     const contact = { id: nanoid(), name, number };
@@ -60,10 +62,11 @@ export function App() {
   };
 
   const deleteContact = contactId => {
-    setContacts(prevState => prevState.filter(contact => contact.id !== contactId));
+    setContacts(prevState =>
+      prevState.filter(contact => contact.id !== contactId)
+    );
   };
 
-  
   const visibleContact = getVisibleContacts();
 
   return (
@@ -76,5 +79,3 @@ export function App() {
     </Container>
   );
 }
-
-
